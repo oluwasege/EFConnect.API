@@ -234,7 +234,7 @@ ClientBin/
 ~$*
 *~
 *.dbmdl
-*.appsettings.Development.json
+*appsettings.Development.json
 *.dbproj.schemaview
 *.jfm
 *.pfx
