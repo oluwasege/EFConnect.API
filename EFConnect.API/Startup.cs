@@ -1,8 +1,12 @@
 using EFConnect.Contracts;
 using EFConnect.Data;
+using EFConnect.Helpers;
+using EFConnect.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +19,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -39,7 +44,7 @@ namespace EFConnect.API
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "EFConnect.API", Version = "v1" });
             });
-
+            services.AddScoped<IUserService, UserService>();
             var key = Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value);         // <---- Added
             services.AddDbContext<EFConnectContext>(x => x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IAuthService, AuthService>();
@@ -56,15 +61,24 @@ namespace EFConnect.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Seed seeder)
+        public void Configure(IApplicationBuilder app /*IWebHostEnvironment env, Seed seeder*/)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EFConnect.API v1"));
-            }
-           // seeder.SeedUsers();
+            
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EFConnect.API v1"));
+            app.UseExceptionHandler(builder => {
+                builder.Run(async context => {
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+                    var error = context.Features.Get<IExceptionHandlerFeature>();
+                    if (error != null)
+                    {
+                        context.Response.AddApplicationError(error.Error.Message);
+                        await context.Response.WriteAsync(error.Error.Message);
+                    }
+                });
+            });
+            // seeder.SeedUsers();
             app.UseHttpsRedirection();
 
             app.UseRouting();

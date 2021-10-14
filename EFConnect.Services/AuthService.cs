@@ -1,4 +1,5 @@
-﻿using EFConnect.Data;
+﻿using EFConnect.Contracts;
+using EFConnect.Data;
 using EFConnect.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,7 +9,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EFConnect.Contracts
+namespace EFConnect.Services
 {
     public class AuthService:IAuthService
     {
