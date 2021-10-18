@@ -7,6 +7,11 @@
   <ItemGroup>
     <PackageReference Include="CloudinaryDotNet" Version="1.15.2" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Extensions" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EFConnect.Contracts\EFConnect.Contracts.csproj" />
   </ItemGroup>
 
 </Project>

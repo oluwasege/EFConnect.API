@@ -15,5 +15,23 @@ namespace EFConnect.Data
         }
         public DbSet<User> Users { get; set; }
         public DbSet<Photo> Photos { get; set; }
+        public DbSet<Follow> Follows { get; set; }
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.Entity<Follow>()                                            //  1.
+                .HasKey(k => new { k.FollowerId, k.FolloweeId });
+
+            builder.Entity<Follow>()                                            //  2.
+                .HasOne(u => u.Followee)
+                .WithMany(u => u.Follower)
+                .HasForeignKey(u => u.FollowerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Follow>()                                            //  3.
+                .HasOne(u => u.Follower)
+                .WithMany(u => u.Followee)
+                .HasForeignKey(u => u.FolloweeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        }
     }
 }

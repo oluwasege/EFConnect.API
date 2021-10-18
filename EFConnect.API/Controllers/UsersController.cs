@@ -1,4 +1,6 @@
 ﻿using EFConnect.Contracts;
+using EFConnect.Data.Entities;
+using EFConnect.Helpers;
 using EFConnect.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace EFConnect.API.Controllers
 {
+    [ServiceFilter(typeof(LogUserActivity))]
     [Authorize]
     [Route("api/[controller]")]
     public class UsersController : Controller
@@ -58,6 +61,34 @@ namespace EFConnect.API.Controllers
                 return NoContent();
 
             throw new Exception($"Updating user failed on save.");
+        }
+
+        [HttpPost("{id}/follow/{recipientId}")]
+        public async Task<IActionResult> FollowUser(int id, int recipientId)
+        {
+            if (id != int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value))               //  1.
+                return Unauthorized();
+
+            var follow = await _userService.GetFollow(id, recipientId);                         //  2.
+
+            if (follow != null)                                                                 //  3.
+                return BadRequest("You already followed this user.");
+
+            if (await _userService.GetUser(recipientId) == null)                                //  4.
+                return NotFound();
+
+            follow = new Follow                                                                 //  5.
+            {
+                FollowerId = id,
+                FolloweeId = recipientId
+            };
+
+            _userService.Add<Follow>(follow);                                                   //  6.
+
+            if (await _userService.SaveAll())                                                   //  7.
+                return Ok();
+
+            return BadRequest("Failed to add user.");                                           //  8.
         }
     }
 }

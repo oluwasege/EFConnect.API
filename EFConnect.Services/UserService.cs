@@ -1,5 +1,6 @@
 ﻿using EFConnect.Contracts;
 using EFConnect.Data;
+using EFConnect.Data.Entities;
 using EFConnect.Helpers;
 using EFConnect.Models.Photo;
 using EFConnect.Models.User;
@@ -93,6 +94,7 @@ namespace EFConnect.Services
                                     City = e.City,
                                     State = e.State,
                                     PhotoUrl = e.Photos.FirstOrDefault(p => p.IsMain).Url
+                                    
                                 }
                             )
                             .ToListAsync();
@@ -117,6 +119,37 @@ namespace EFConnect.Services
             user.State = model.State;
 
             return await _context.SaveChangesAsync() == 1;
+        }
+        public async Task<User> GetUserEntity(int id)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
+        }
+
+        public async Task<Follow> GetFollow(int userId, int recipientId)
+        {
+            return await _context
+                            .Follows
+                            .FirstOrDefaultAsync(u => u.FollowerId == userId &&
+                                                      u.FolloweeId == recipientId);
+        }
+
+
+
+        private async Task<IEnumerable<Follow>> GetUserFollows(int id, bool followers)
+        {
+            var user = await _context.Users
+                        .Include(x => x.Followee)
+                        .Include(x => x.Follower)
+                        .FirstOrDefaultAsync(u => u.Id == id);
+
+            if (followers)
+            {
+                return user.Followee.Where(u => u.FolloweeId == id);
+            }
+            else
+            {
+                return user.Follower.Where(u => u.FollowerId == id);
+            }
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using EFConnect.Models.User;
+﻿using EFConnect.Data.Entities;
+using EFConnect.Models.User;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,7 @@ namespace EFConnect.Contracts
         Task<IEnumerable<UserForList>> GetUsers();
         Task<UserForDetail> GetUser(int id);
         Task<bool> UpdateUser(int id, UserForUpdate userForUpdate);
+        Task<User> GetUserEntity(int id);
+        Task<Follow> GetFollow(int userId, int recipientId);
     }
 }

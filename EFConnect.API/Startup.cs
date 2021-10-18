@@ -38,6 +38,10 @@ namespace EFConnect.API
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMvc(options =>
+            {
+                options.SuppressAsyncSuffixInActionNames = false;
+            });
             services.AddTransient<Seed>();
             services.AddControllers();
             services.AddSwaggerGen(c =>
@@ -45,6 +49,7 @@ namespace EFConnect.API
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "EFConnect.API", Version = "v1" });
             });
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IPhotoService, PhotoService>(); 
             var key = Encoding.ASCII.GetBytes(Configuration.GetSection("AppSettings:Token").Value);         // <---- Added
             services.AddDbContext<EFConnectContext>(x => x.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IAuthService, AuthService>();
@@ -59,6 +64,7 @@ namespace EFConnect.API
                         };
                     });
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
+            services.AddScoped<LogUserActivity>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

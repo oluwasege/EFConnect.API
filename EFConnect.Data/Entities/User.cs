@@ -41,5 +41,8 @@ namespace EFConnect.Data.Entities
         {
             Photos = new Collection<Photo>();
         }
+        public ICollection<Follow> Follower { get; set; }
+
+        public ICollection<Follow> Followee { get; set; }
     }
 }
