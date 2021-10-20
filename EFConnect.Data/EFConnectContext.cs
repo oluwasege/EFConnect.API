@@ -16,6 +16,7 @@ namespace EFConnect.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Photo> Photos { get; set; }
         public DbSet<Follow> Follows { get; set; }
+        public DbSet<Message> Messages { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             builder.Entity<Follow>()                                            //  1.
@@ -31,6 +32,16 @@ namespace EFConnect.Data
                 .HasOne(u => u.Follower)
                 .WithMany(u => u.Followee)
                 .HasForeignKey(u => u.FolloweeId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(u => u.Sender)
+                .WithMany(u => u.MessagesSent)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Message>()
+                .HasOne(u => u.Recipient)
+                .WithMany(u => u.MessagesReceived)
                 .OnDelete(DeleteBehavior.Restrict);
         }
     }

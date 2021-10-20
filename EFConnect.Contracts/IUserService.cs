@@ -1,4 +1,5 @@
 ﻿using EFConnect.Data.Entities;
+using EFConnect.Models;
 using EFConnect.Models.User;
 using System;
 using System.Collections.Generic;
@@ -18,5 +19,7 @@ namespace EFConnect.Contracts
         Task<bool> UpdateUser(int id, UserForUpdate userForUpdate);
         Task<User> GetUserEntity(int id);
         Task<Follow> GetFollow(int userId, int recipientId);
+        Task<PagedList<UserForList>> GetUsers(UserParams userParams);
+        Task<PagedList<UserForList>> GetFollowUsers(UserParams userParams);
     }
 }

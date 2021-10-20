@@ -44,5 +44,8 @@ namespace EFConnect.Data.Entities
         public ICollection<Follow> Follower { get; set; }
 
         public ICollection<Follow> Followee { get; set; }
+        public ICollection<Message> MessagesSent { get; set; }
+
+        public ICollection<Message> MessagesReceived { get; set; }
     }
 }

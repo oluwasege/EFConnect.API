@@ -2,6 +2,7 @@
 using EFConnect.Data;
 using EFConnect.Data.Entities;
 using EFConnect.Helpers;
+using EFConnect.Models;
 using EFConnect.Models.Photo;
 using EFConnect.Models.User;
 using Microsoft.EntityFrameworkCore;
@@ -135,6 +136,120 @@ namespace EFConnect.Services
 
 
 
+       
+        public async Task<PagedList<UserForList>> GetUsers(UserParams userParams)
+        {
+            var users = _context.Users
+                            .Include(p => p.Photos)
+                            .Select(
+                                e => new UserForList
+                                {
+                                    Id = e.Id,
+                                    Username = e.Username,
+                                    Specialty = e.Specialty,
+                                    Age = e.DateOfBirth.CalculateAge(),
+                                    KnownAs = e.KnownAs,
+                                    Created = e.Created,
+                                    LastActive = e.LastActive,
+                                    City = e.City,
+                                    State = e.State,
+                                    PhotoUrl = e.Photos.FirstOrDefault(p => p.IsMain).Url
+                                }
+                            )
+                            .OrderByDescending(x=>x.LastActive)
+                            .AsQueryable();
+
+            users = users.Where(u => u.Id != userParams.UserId);                        //  <--- Added (1)
+
+            if (userParams.Specialty.ToLower() != "all")                                //  <--- Added (2)
+            {
+                users = users.Where(u => u.Specialty == userParams.Specialty);
+            }
+
+            if (!string.IsNullOrEmpty(userParams.OrderBy))
+            {
+                switch (userParams.OrderBy)
+                {
+                    case "created":
+                        users = users.OrderByDescending(u => u.Created);
+                        break;
+                    default:
+                        users = users.OrderByDescending(u => u.LastActive);
+                        break;
+                }
+            }
+
+            //if (userParams.Followers)
+            //{
+            //    var userFollowers = await GetUserFollows(userParams.UserId, userParams.Followers);
+            //    users = users.Where(u => userFollowers.Any(follower => follower.FollowerId == u.Id));
+            //}
+
+            //if (userParams.Followees)
+            //{
+            //    var userFollowees = await GetUserFollows(userParams.UserId, userParams.Followers);
+            //    users = users.Where(u => userFollowees.Any(followee => followee.FolloweeId == u.Id)));
+            //}
+
+            return await PagedList<UserForList>.CreateAsync(users, userParams.PageNumber, userParams.PageSize);
+        }
+
+        public async Task<PagedList<UserForList>> GetFollowUsers(UserParams userParams)
+        {
+
+            var userAndFollowers = _context.Follows
+                .Where(c => c.FollowerId == userParams.UserId)
+                .Select(
+                                e => new UserForList
+                                {
+                                    Id = e.Follower.Id,
+                                    Username = e.Follower.Username,
+                                    Specialty = e.Follower.Specialty,
+                                    Age = e.Follower.DateOfBirth.CalculateAge(),
+                                    KnownAs = e.Follower.KnownAs,
+                                    Created = e.Follower.Created,
+                                    LastActive = e.Follower.LastActive,
+                                    City = e.Follower.City,
+                                    State = e.Follower.State,
+                                    PhotoUrl = e.Follower.Photos.FirstOrDefault(p => p.IsMain).Url
+                                }
+                            );
+            //.FirstOrDefault(u => u.Id == userParams.UserId);
+
+            return await PagedList<UserForList>.CreateAsync(userAndFollowers, userParams.PageNumber, userParams.PageSize);
+            //var users = _context.Users
+            //                .Include(p => p.Photos)
+            //                .Select(
+            //                    e => new UserForList
+            //                    {
+            //                        Id = e.Id,
+            //                        Username = e.Username,
+            //                        Specialty = e.Specialty,
+            //                        Age = e.DateOfBirth.CalculateAge(),
+            //                        KnownAs = e.KnownAs,
+            //                        Created = e.Created,
+            //                        LastActive = e.LastActive,
+            //                        City = e.City,
+            //                        State = e.State,
+            //                        PhotoUrl = e.Photos.FirstOrDefault(p => p.IsMain).Url
+            //                    }
+            //                )
+            //                .OrderByDescending(x => x.LastActive)
+            //                .AsQueryable();
+            //if (userParams.Followers)
+            //{
+            //    var userFollowers = await GetUserFollows(userParams.UserId, userParams.Followers);
+            //    users = users.Where(u => userFollowers.Any(follower => follower.FollowerId == u.Id));
+            //}
+
+            //if (userParams.Followees)
+            //{
+            //    var userFollowees = await GetUserFollows(userParams.UserId, userParams.Followers);
+
+            //    users.Where(u => userFollowees.Any(followee => followee.FolloweeId == u.Id));
+            //}
+        }
+
         private async Task<IEnumerable<Follow>> GetUserFollows(int id, bool followers)
         {
             var user = await _context.Users
@@ -151,6 +266,8 @@ namespace EFConnect.Services
                 return user.Follower.Where(u => u.FollowerId == id);
             }
         }
+
+
     }
 
 }

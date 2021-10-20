@@ -65,14 +65,20 @@ namespace EFConnect.API
                     });
             services.Configure<CloudinarySettings>(Configuration.GetSection("CloudinarySettings"));
             services.AddScoped<LogUserActivity>();
+            services.AddScoped<IMessageService, MessageService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app /*IWebHostEnvironment env, Seed seeder*/)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env/*, Seed seeder*/)
         {
             
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "EFConnect.API v1"));
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+
+            }
             app.UseExceptionHandler(builder => {
                 builder.Run(async context => {
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;

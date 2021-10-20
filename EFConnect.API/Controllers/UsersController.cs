@@ -1,6 +1,7 @@
 ﻿using EFConnect.Contracts;
 using EFConnect.Data.Entities;
 using EFConnect.Helpers;
+using EFConnect.Models;
 using EFConnect.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -89,6 +90,34 @@ namespace EFConnect.API.Controllers
                 return Ok();
 
             return BadRequest("Failed to add user.");                                           //  8.
+        }
+
+        [HttpGet("PG")]
+        public async Task<IActionResult> GetUsers([FromQuery] UserParams userParams)
+        {
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            userParams.UserId = currentUserId;
+
+            var users = await _userService.GetUsers(userParams);
+
+            Response.AddPagination(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+
+            return Ok(users);
+        }
+
+        [HttpGet("Follow")]
+        public async Task<IActionResult> GetFollow([FromQuery] UserParams userParams)
+        {
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
+
+            userParams.UserId = currentUserId;
+
+            var users = await _userService.GetFollowUsers(userParams);
+
+            Response.AddPagination(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+
+            return Ok(users);
         }
     }
 }
